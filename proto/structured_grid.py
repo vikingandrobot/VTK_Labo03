@@ -4,11 +4,17 @@ from random import uniform
 sg = vtk.vtkStructuredGrid()
 
 points = vtk.vtkPoints()
-for x in range(0, 10):
-	for y in range(0, 10):
-		points.InsertNextPoint(x + uniform(-0.2, 0.2), y + uniform(-0.2, 0.2), 3 uniform(-0.5, 0.5))
+SEGMENTS = 20
+for y in range(0, SEGMENTS + 1):
+	for x in range(0, SEGMENTS + 1):
+		p = [0, 0, 20 + uniform(-0.2, 0.2)]
+		transform1 = vtk.vtkTransform()
+		transform2 = vtk.vtkTransform()
+		transform2.RotateX(y * 90 / SEGMENTS)
+		transform1.RotateY(x * 90 / SEGMENTS)
+		points.InsertNextPoint(transform1.TransformPoint(transform2.TransformPoint(p)))
 
-sg.SetDimensions(10, 10, 1)
+sg.SetDimensions(SEGMENTS + 1, SEGMENTS + 1, 1)
 sg.SetPoints(points)
 
 gf = vtk.vtkStructuredGridGeometryFilter()
