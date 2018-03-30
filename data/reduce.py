@@ -16,7 +16,7 @@ def readCSV(inputFile, outputFile):
 
 	with open(outputFile, 'w') as output:
 
-		output.write("30 30")
+		output.write("30 30\n")
 
 		with open(inputFile, 'r') as input:
 
