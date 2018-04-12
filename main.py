@@ -13,7 +13,7 @@ MAX_LATITUDE = 47.5
 MIN_LONGITUDE = 5
 MAX_LONGITUDE = 7.5
 
-FILENAME = "data/altitudes.txt"
+FILENAME = "data/output.txt"
 
 # Create points
 points = vtk.vtkPoints()
@@ -93,8 +93,13 @@ renderer = vtk.vtkRenderer()
 renderWindow = vtk.vtkRenderWindow()
 renderWindow.SetSize(800, 600)
 renderWindow.AddRenderer(renderer)
+
 renderWindowInteractor = vtk.vtkRenderWindowInteractor()
 renderWindowInteractor.SetRenderWindow(renderWindow)
+
+# Here we specify a particular interactor style.
+style = vtk.vtkInteractorStyleTrackballCamera()
+renderWindowInteractor.SetInteractorStyle(style)
 
 
 renderer.AddActor(actor)
