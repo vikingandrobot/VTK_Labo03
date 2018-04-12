@@ -1,5 +1,6 @@
 
 import vtk
+import numpy as np
 from colors import MAP_COLORS
 from lookUpTable import createLookUpTable
 from proto.read_file import read
@@ -27,6 +28,37 @@ def getMapColorsByAltitude(altitudes, colorLookupTable):
     return colors
 
 
+# Returns true if the two colors c1 and c2 are the same
+def colorEquals(c1, c2):
+    return np.array_equal(c1, c2)
+
+
+# Given a two dimensional array of altitudes value and a one dimensional array
+# (vtkUnsignedCharArray) of colors value assigned two those altitudes,
+# replace all flat area by a
+# specific color. The sensibility must be >= 2 and describes the size of the
+# square in which to search for flat area. If a point is at the uperleft corner
+# of such a square and all points inside said square are at the same altitude,
+# said point will be colored in "flatColor"
+def flatColoring(altitudes, colors, flatColor, sensibility):
+    for i in range(0, len(altitudes) - sensibility):
+        for j in range(0, len(altitudes[i]) - sensibility):
+
+            # Current altitude value in the loop
+            nbCurrentAltitude = altitudes[i][j]
+
+            equality = True
+            for k in range(0, sensibility):
+                for h in range(0, sensibility):
+                    equality = equality and nbCurrentAltitude == altitudes[i + k][j + h]
+
+            if equality:
+                for k in range(0, sensibility):
+                    for h in range(0, sensibility):
+                        colors.SetTuple((i + k) * len(altitudes[i]) + j + h, tuple(flatColor))
+
+
+
 EARTH_RADUIS = 6371009
 
 MIN_LATITUDE = 45
@@ -35,7 +67,9 @@ MAX_LATITUDE = 47.5
 MIN_LONGITUDE = 5
 MAX_LONGITUDE = 7.5
 
-FILENAME = "data/output.txt"
+FILENAME = "data/altitudes.txt"
+
+BLUE_COLOR = [143, 230, 252]
 
 # Create points
 points = vtk.vtkPoints()
@@ -44,7 +78,7 @@ points = vtk.vtkPoints()
 altitudes = read(FILENAME)
 
 # Find min and max value to map colors to
-min = altitudes.min()
+min = 0
 max = altitudes.max()
 
 # Create the lookUpTable
@@ -52,6 +86,8 @@ colorLookupTable = createLookUpTable(MAP_COLORS, min, max)
 
 # Array to store the color to use for each point
 colors = getMapColorsByAltitude(altitudes, colorLookupTable)
+
+flatColoring(altitudes, colors, BLUE_COLOR, 3)
 
 # Get matrices size
 rows = len(altitudes)
