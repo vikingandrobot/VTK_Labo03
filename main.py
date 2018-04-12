@@ -5,6 +5,28 @@ from lookUpTable import createLookUpTable
 from proto.read_file import read
 
 
+# Get a color array containing the color for each altitude according to the
+# given LUT.
+def getMapColorsByAltitude(altitudes, colorLookupTable):
+    colors = vtk.vtkUnsignedCharArray()
+    colors.SetNumberOfComponents(3)
+    colors.SetName("Colors")
+
+    # Choose colors for each points and then rotate them
+    for i in range(0, len(altitudes)):
+        for j in range(0, len(altitudes[i])):
+            # print(p[0] - EARTH_RADUIS)
+            dcolor = [0, 0, 0]
+            colorLookupTable.GetColor(altitudes[i][j], dcolor)
+            # print(dcolor)
+            color = [0, 0, 0]
+            for k in range(0, 3):
+                color[k] = 255 * dcolor[k]
+
+            colors.InsertNextTuple(color)
+    return colors
+
+
 EARTH_RADUIS = 6371009
 
 MIN_LATITUDE = 45
@@ -29,9 +51,7 @@ max = altitudes.max()
 colorLookupTable = createLookUpTable(MAP_COLORS, min, max)
 
 # Array to store the color to use for each point
-colors = vtk.vtkUnsignedCharArray()
-colors.SetNumberOfComponents(3)
-colors.SetName("Colors")
+colors = getMapColorsByAltitude(altitudes, colorLookupTable)
 
 # Get matrices size
 rows = len(altitudes)
@@ -47,15 +67,6 @@ for i in range(0, len(altitudes)):
 
         # Create a new point
         p = [EARTH_RADUIS + int(altitudes[i][j]), 0, 0]
-        # print(p[0] - EARTH_RADUIS)
-        dcolor = [0, 0, 0]
-        colorLookupTable.GetColor(p[0] - EARTH_RADUIS, dcolor)
-        # print(dcolor)
-        color = [0, 0, 0]
-        for k in range(0, 3):
-            color[k] = 255 * dcolor[k]
-
-        colors.InsertNextTuple(color)
 
         transform1 = vtk.vtkTransform()
         transform1.RotateY(-(j * longitudeDelta + MIN_LONGITUDE))
