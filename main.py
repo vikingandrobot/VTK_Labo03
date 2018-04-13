@@ -75,7 +75,7 @@ altitudes = read(FILENAME)
 print("Finished reading intput file.")
 
 # Find min and max value to map colors to
-min = 0
+min = altitudes.min()
 max = altitudes.max()
 
 # Create the lookUpTable
