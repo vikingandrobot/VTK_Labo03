@@ -59,7 +59,6 @@ def flatColoring(altitudes, colors, flatColor, sensibility):
                         colors.SetTuple((i + k) * len(altitudes[i]) + j + h, tuple(flatColor))
 
 
-
 EARTH_RADUIS = 6371009
 
 MIN_LATITUDE = 45
@@ -68,7 +67,7 @@ MAX_LATITUDE = 47.5
 MIN_LONGITUDE = 5
 MAX_LONGITUDE = 7.5
 
-FILENAME = "data/output.txt"
+FILENAME = "data/altitudes.txt"
 
 BLUE_COLOR = [143, 230, 252]
 
@@ -76,19 +75,28 @@ BLUE_COLOR = [143, 230, 252]
 points = vtk.vtkPoints()
 
 # Read altitudes from input file
+print("Reading input file...")
 altitudes = read(FILENAME)
+print("Finished reading intput file.")
 
 # Find min and max value to map colors to
 min = 0
 max = altitudes.max()
 
 # Create the lookUpTable
+print("Building LUT...")
 colorLookupTable = createLookUpTable(MAP_COLORS, min, max)
+print("LUT built.")
 
 # Array to store the color to use for each point
+print("Processing altitude colors...")
 colors = getMapColorsByAltitude(altitudes, colorLookupTable)
+print("Done.")
 
+# Color flat areas in blue
+print("Coloring lakes...")
 flatColoring(altitudes, colors, BLUE_COLOR, 3)
+print("Done.")
 
 # Get matrices size
 rows = len(altitudes)
@@ -98,18 +106,21 @@ cols = len(altitudes[0])
 longitudeDelta = (MAX_LONGITUDE - MIN_LONGITUDE) / rows
 latitudeDelta = (MAX_LATITUDE - MIN_LATITUDE) / cols
 
-# Choose colors for each points and then rotate them
+# Rotate point around the center of the Earth
+print("Building points...")
 for i in range(0, len(altitudes)):
+
+    transform2 = vtk.vtkTransform()
+    transform2.RotateZ(i * latitudeDelta + MIN_LATITUDE)
+
+    transform1 = vtk.vtkTransform()
+    transform1.RotateY(-MIN_LONGITUDE)
     for j in range(0, len(altitudes[i])):
 
         # Create a new point
         p = [EARTH_RADUIS + int(altitudes[i][j]), 0, 0]
 
-        transform1 = vtk.vtkTransform()
-        transform1.RotateY(-(j * longitudeDelta + MIN_LONGITUDE))
-
-        transform2 = vtk.vtkTransform()
-        transform2.RotateZ(i * latitudeDelta + MIN_LATITUDE)
+        transform1.RotateY(-longitudeDelta)
 
         # Apply tranformation
         points.InsertNextPoint(
@@ -119,10 +130,13 @@ for i in range(0, len(altitudes)):
                 )
             )
         )
+print("Done.")
 
+print("Building structuredGrid")
 sg = vtk.vtkStructuredGrid()
 sg.SetDimensions(rows, cols, 1)
 sg.SetPoints(points)
+print("Done.")
 
 gf = vtk.vtkStructuredGridGeometryFilter()
 gf.SetInputData(sg)
