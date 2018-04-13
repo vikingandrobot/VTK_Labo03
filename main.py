@@ -29,11 +29,6 @@ def getMapColorsByAltitude(altitudes, colorLookupTable):
     return colors
 
 
-# Returns true if the two colors c1 and c2 are the same
-def colorEquals(c1, c2):
-    return np.array_equal(c1, c2)
-
-
 # Given a two dimensional array of altitudes value and a one dimensional array
 # (vtkUnsignedCharArray) of colors value assigned two those altitudes,
 # replace all flat area by a
@@ -42,8 +37,8 @@ def colorEquals(c1, c2):
 # of such a square and all points inside said square are at the same altitude,
 # said point will be colored in "flatColor"
 def flatColoring(altitudes, colors, flatColor, sensibility):
-    for i in range(0, len(altitudes) - sensibility):
-        for j in range(0, len(altitudes[i]) - sensibility):
+    for i in range(0, len(altitudes) - sensibility, sensibility):
+        for j in range(0, len(altitudes[i]) - sensibility, sensibility):
 
             # Current altitude value in the loop
             nbCurrentAltitude = altitudes[i][j]
