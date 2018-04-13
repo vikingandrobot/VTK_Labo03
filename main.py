@@ -4,6 +4,7 @@ import numpy as np
 from colors import MAP_COLORS
 from lookUpTable import createLookUpTable
 from proto.read_file import read
+from keypressInteractorStyle import KeyPressInteractorStyle
 
 
 # Get a color array containing the color for each altitude according to the
@@ -67,7 +68,7 @@ MAX_LATITUDE = 47.5
 MIN_LONGITUDE = 5
 MAX_LONGITUDE = 7.5
 
-FILENAME = "data/altitudes.txt"
+FILENAME = "data/output.txt"
 
 BLUE_COLOR = [143, 230, 252]
 
@@ -138,19 +139,19 @@ actor.GetProperty().SetPointSize(3)
 
 renderer = vtk.vtkRenderer()
 renderWindow = vtk.vtkRenderWindow()
-renderWindow.SetSize(800, 600)
+renderWindow.SetSize(1200, 720)
 renderWindow.AddRenderer(renderer)
 
 renderWindowInteractor = vtk.vtkRenderWindowInteractor()
 renderWindowInteractor.SetRenderWindow(renderWindow)
 
 # Here we specify a particular interactor style.
-style = vtk.vtkInteractorStyleTrackballCamera()
+style = KeyPressInteractorStyle(renderWindow, renderWindowInteractor)
 renderWindowInteractor.SetInteractorStyle(style)
 
 
 renderer.AddActor(actor)
-renderer.SetBackground(.2, .3, .4)
+renderer.SetBackground(0.95, 0.95, 0.95)
 
 renderWindow.Render()
 renderWindowInteractor.Start()
