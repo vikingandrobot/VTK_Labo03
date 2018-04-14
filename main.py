@@ -17,10 +17,8 @@ def getMapColorsByAltitude(altitudes, colorLookupTable):
     # Choose colors for each points and then rotate them
     for i in range(0, len(altitudes)):
         for j in range(0, len(altitudes[i])):
-            # print(p[0] - EARTH_RADUIS)
             dcolor = [0, 0, 0]
             colorLookupTable.GetColor(altitudes[i][j], dcolor)
-            # print(dcolor)
             color = [0, 0, 0]
             for k in range(0, 3):
                 color[k] = 255 * dcolor[k]
@@ -54,13 +52,27 @@ def flatColoring(altitudes, colors, flatColor, sensibility):
                         colors.SetTuple((i + k) * len(altitudes[i]) + j + h, tuple(flatColor))
 
 
-EARTH_RADUIS = 6371009
+EARTH_RADIUS = 6371009
 
 MIN_LATITUDE = 45
 MAX_LATITUDE = 47.5
+MID_LATITUDE = MIN_LATITUDE + ((MAX_LATITUDE - MIN_LATITUDE) / 2)
 
 MIN_LONGITUDE = 5
 MAX_LONGITUDE = 7.5
+MID_LONGITUDE = MIN_LONGITUDE + ((MAX_LONGITUDE - MIN_LONGITUDE) / 2)
+
+# Create a point in the middle of the map, 500 m above the radius of the Earth
+middlePoint = [EARTH_RADIUS + 500, 0, 0]
+rotate1 = vtk.vtkTransform()
+rotate1.RotateZ(MID_LATITUDE)
+rotate2 = vtk.vtkTransform()
+rotate2.RotateY(-MID_LONGITUDE)
+focalPoint = rotate2.TransformPoint(
+    rotate1.TransformPoint(
+        middlePoint
+    )
+)
 
 FILENAME = "data/altitudes.txt"
 
@@ -113,7 +125,7 @@ for i in range(0, len(altitudes)):
     for j in range(0, len(altitudes[i])):
 
         # Create a new point
-        p = [EARTH_RADUIS + int(altitudes[i][j]), 0, 0]
+        p = [EARTH_RADIUS + int(altitudes[i][j]), 0, 0]
 
         transform1.RotateY(-longitudeDelta)
 
@@ -147,20 +159,27 @@ actor.SetMapper(mapper)
 actor.GetProperty().SetPointSize(3)
 
 renderer = vtk.vtkRenderer()
+renderer.AddActor(actor)
+
+# Positionning the camera
+renderer.SetBackground(0.95, 0.95, 0.95)
+renderer.GetActiveCamera().SetPosition(EARTH_RADIUS + 100000, 0, 0)
+renderer.GetActiveCamera().Azimuth(-MID_LONGITUDE)
+renderer.GetActiveCamera().Elevation(MID_LATITUDE)
+renderer.GetActiveCamera().SetFocalPoint(focalPoint)
+renderer.GetActiveCamera().Dolly(0.1)
+renderer.GetActiveCamera().SetRoll(180)  # Don't know why we need to rotate 180°
+renderer.ResetCamera()
+
 renderWindow = vtk.vtkRenderWindow()
 renderWindow.SetSize(1200, 720)
 renderWindow.AddRenderer(renderer)
-
 renderWindowInteractor = vtk.vtkRenderWindowInteractor()
 renderWindowInteractor.SetRenderWindow(renderWindow)
 
 # Here we specify a particular interactor style.
 style = KeyPressInteractorStyle(renderWindow, renderWindowInteractor)
 renderWindowInteractor.SetInteractorStyle(style)
-
-
-renderer.AddActor(actor)
-renderer.SetBackground(0.95, 0.95, 0.95)
 
 renderWindow.Render()
 renderWindowInteractor.Start()
